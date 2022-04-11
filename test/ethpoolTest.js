@@ -32,4 +32,10 @@ describe("EthPool", function () {
     await eth_pool.connect(acc3).withdraw();
     // await eth_pool.connect(acc1).withdraw();
   });
+
+  it("distribute fails", async function () {
+    const amount = ethers.utils.parseEther("10.0");
+    await eth_pool.connect(acc1).distribute({ value: amount.div(100) });
+  });
+
 });
