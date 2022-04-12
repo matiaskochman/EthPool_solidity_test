@@ -41,19 +41,18 @@ contract EthPool is AccessControl{
     snapshotRewards[msg.sender] = totalRewards;
     totalStaked = totalStaked + msg.value;
     emit Deposit(msg.sender, msg.value, totalStaked);
-    console.log("totalStaked: ", totalStaked);
   }
 
   function distribute() payable external onlyRole(ETH_POOL_TEAM){
     require(totalStaked != 0, "cannot distribute because there is nothing staked");
-    console.log("rewards: ", msg.value, " totalStaked: ", totalStaked);
     uint val = msg.value / totalStaked;
     totalRewards = totalRewards + (msg.value * MULTIPLIER / totalStaked);
     emit Distribute(totalStaked, totalRewards);
-    console.log("totalRewards: ", totalRewards, " val:", val);
   }
 
-  function withdraw() external returns (uint){
+  function withdraw() external {
+    require(totalStaked > 0, "no deposits in the contract");
+    require(clientStake[msg.sender] > 0, "no funds to withdraw for the client");
     uint deposited = clientStake[msg.sender];
     clientStake[msg.sender] = 0;
     uint reward = deposited * (totalRewards - snapshotRewards[msg.sender]);
@@ -61,12 +60,11 @@ contract EthPool is AccessControl{
     
     uint val = reward / MULTIPLIER;
     uint total = deposited + val;
-    console.log("withdraw: ", total," reward: ", val);
     (bool sent, ) = payable(msg.sender).call{value: total}("");
     require(sent, "Failed to send Ether");
 
     emit Withdraw(msg.sender, deposited, val);
-    return total;
+    // console.log("deposited: ", deposited, " reward: ", reward);
   }
     // to support receiving ETH by default
   receive() external payable {}
