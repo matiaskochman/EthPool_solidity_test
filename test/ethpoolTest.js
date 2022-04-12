@@ -111,11 +111,11 @@ describe("EthPool", function () {
   
     it("should reproduce a third example correctly", async function () {
   
-      // acc1 deposits 100
+      // acc1 deposits 0.001
       await eth_pool.connect(acc1).deposit({ value: ethers.utils.parseEther("0.001") });
-      // acc2 depostis 300
+      // acc2 depostis 0.003
       await eth_pool.connect(acc2).deposit({ value: ethers.utils.parseEther("0.003") });
-      // ETH_POOL distributes 200
+      // ETH_POOL distributes 0.002
       await eth_pool.connect(owner).distribute({ value: ethers.utils.parseEther("0.002") });
   
       await expect(await eth_pool.connect(acc1).withdraw()).to.emit(eth_pool, "Withdraw")
