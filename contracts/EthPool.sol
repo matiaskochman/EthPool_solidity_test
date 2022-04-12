@@ -1,7 +1,6 @@
 pragma solidity ^0.8.4;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
-import "hardhat/console.sol";
 contract EthPool is AccessControl{
 
   uint private totalStaked = 0; // T

@@ -107,6 +107,22 @@ describe("EthPool", function () {
   
       await expect(await eth_pool.connect(acc2).withdraw()).to.emit(eth_pool, "Withdraw")
       .withArgs(acc2.address, ethers.utils.parseEther("300.0"), ethers.utils.parseEther("0.0"));
+    });
+  
+    it("should reproduce a third example correctly", async function () {
+  
+      // acc1 deposits 100
+      await eth_pool.connect(acc1).deposit({ value: ethers.utils.parseEther("0.001") });
+      // acc2 depostis 300
+      await eth_pool.connect(acc2).deposit({ value: ethers.utils.parseEther("0.003") });
+      // ETH_POOL distributes 200
+      await eth_pool.connect(owner).distribute({ value: ethers.utils.parseEther("0.002") });
+  
+      await expect(await eth_pool.connect(acc1).withdraw()).to.emit(eth_pool, "Withdraw")
+      .withArgs(acc1.address, ethers.utils.parseEther("0.001"), ethers.utils.parseEther("0.0005"));
+  
+      await expect(await eth_pool.connect(acc2).withdraw()).to.emit(eth_pool, "Withdraw")
+      .withArgs(acc2.address, ethers.utils.parseEther("0.003"), ethers.utils.parseEther("0.0015"));
       });
   
 });
