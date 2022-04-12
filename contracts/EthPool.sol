@@ -9,11 +9,27 @@ contract EthPool is AccessControl{
   mapping(address => uint) private clientStake; // S0
   mapping(address => uint) private snapshotRewards;
 
-  uint private constant MULTIPLIER = 1000;
+  uint private constant MULTIPLIER = 100000;
 
     // Roles
   bytes32 public constant ETH_POOL_TEAM = keccak256("ETH_POOL_TEAM");
 
+  // Event emitted when a user makes a deposit
+  event Deposit(
+      address indexed _from, // account of user who deposited
+      uint256 stakedAmount, // amount of token that was deposited,
+      uint256 totalStaked
+  );
+  // Event emitted when a user makes a withdrawal
+  event Withdraw(
+      address indexed _from, // account of user who withdrew funds      
+      uint256 unstaked, // amount of token that was withdrawn
+      uint256 reward
+  );
+  event Distribute(
+    uint totalStaked, 
+    uint totalRewards
+  );
   constructor() {
     // Grant roles
     _setupRole(ETH_POOL_TEAM, _msgSender());
@@ -24,6 +40,7 @@ contract EthPool is AccessControl{
     clientStake[msg.sender] = msg.value;
     snapshotRewards[msg.sender] = totalRewards;
     totalStaked = totalStaked + msg.value;
+    emit Deposit(msg.sender, msg.value, totalStaked);
     console.log("totalStaked: ", totalStaked);
   }
 
@@ -31,7 +48,8 @@ contract EthPool is AccessControl{
     require(totalStaked != 0, "cannot distribute because there is nothing staked");
     console.log("rewards: ", msg.value, " totalStaked: ", totalStaked);
     uint val = msg.value / totalStaked;
-    totalRewards = totalRewards + (msg.value *MULTIPLIER / totalStaked);
+    totalRewards = totalRewards + (msg.value * MULTIPLIER / totalStaked);
+    emit Distribute(totalStaked, totalRewards);
     console.log("totalRewards: ", totalRewards, " val:", val);
   }
 
@@ -41,12 +59,13 @@ contract EthPool is AccessControl{
     uint reward = deposited * (totalRewards - snapshotRewards[msg.sender]);
     totalStaked = totalStaked - deposited;
     
-
-    uint total = deposited + reward / MULTIPLIER;
-    console.log("withdraw: ", total," reward: ", reward/MULTIPLIER);
+    uint val = reward / MULTIPLIER;
+    uint total = deposited + val;
+    console.log("withdraw: ", total," reward: ", val);
     (bool sent, ) = payable(msg.sender).call{value: total}("");
     require(sent, "Failed to send Ether");
 
+    emit Withdraw(msg.sender, deposited, val);
     return total;
   }
     // to support receiving ETH by default
