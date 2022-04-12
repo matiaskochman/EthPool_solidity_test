@@ -1,30 +1,27 @@
-// We require the Hardhat Runtime Environment explicitly here. This is optional
-// but useful for running the script in a standalone fashion through `node <script>`.
-//
-// When running the script with `npx hardhat run <script>` you'll find the Hardhat
-// Runtime Environment's members available in the global scope.
+/* eslint-disable prettier/prettier */
+/* eslint-disable prefer-const */
 const hre = require("hardhat");
+const fs = require('fs');
 
 async function main() {
-  // Hardhat always runs the compile task when running scripts with its command
-  // line interface.
-  //
-  // If this script is run directly using `node` you may want to call compile
-  // manually to make sure everything is compiled
-  // await hre.run('compile');
+  const EthPoolFactory = await hre.ethers.getContractFactory("EthPool");
+  const ethPool = await EthPoolFactory.deploy();
+  await ethPool.deployed();
+  console.log("ethPool deployed to:", ethPool.address);
 
-  // We get the contract to deploy
-  const Greeter = await hre.ethers.getContractFactory("Greeter");
-  const greeter = await Greeter.deploy("Hello, Hardhat!");
 
-  await greeter.deployed();
+  let config = `
+  export const ethPoolAddress = "${ethPool.address}"
+  `
 
-  console.log("Greeter deployed to:", greeter.address);
+  let data = JSON.stringify(config)
+  fs.writeFileSync('config.js', JSON.parse(data))
+
 }
 
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
-main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+main()
+  .then(() => process.exit(0))
+  .catch(error => {
+    console.error(error);
+    process.exit(1);
+  });

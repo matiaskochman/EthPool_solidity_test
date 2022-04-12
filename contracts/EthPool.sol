@@ -1,7 +1,9 @@
 pragma solidity ^0.8.4;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
-contract EthPool is AccessControl{
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+
+contract EthPool is AccessControl, ReentrancyGuard{
 
   uint private totalStaked = 0; // T
   uint private totalRewards = 0; // S
@@ -34,20 +36,20 @@ contract EthPool is AccessControl{
     _setupRole(ETH_POOL_TEAM, _msgSender());
   }
 
-  function deposit() payable external {
+  function deposit() payable external nonReentrant {
     clientStake[msg.sender] = msg.value;
     snapshotRewards[msg.sender] = totalRewards;
     totalStaked = totalStaked + msg.value;
     emit Deposit(msg.sender, msg.value, totalStaked);
   }
 
-  function distribute() payable external onlyRole(ETH_POOL_TEAM){
+  function distribute() payable external nonReentrant onlyRole(ETH_POOL_TEAM){
     require(totalStaked != 0, "cannot distribute because there is nothing staked");    
     totalRewards = totalRewards + (msg.value * MULTIPLIER / totalStaked);
     emit Distribute(totalStaked, totalRewards);
   }
 
-  function withdraw() external {
+  function withdraw() external nonReentrant{
     require(totalStaked > 0, "no deposits in the contract");
     require(clientStake[msg.sender] > 0, "no funds to withdraw for the client");
     uint deposited = clientStake[msg.sender];
