@@ -33,7 +33,6 @@ contract EthPool is AccessControl{
   constructor() {
     // Grant roles
     _setupRole(ETH_POOL_TEAM, _msgSender());
-
   }
 
   function deposit() payable external {
@@ -44,8 +43,7 @@ contract EthPool is AccessControl{
   }
 
   function distribute() payable external onlyRole(ETH_POOL_TEAM){
-    require(totalStaked != 0, "cannot distribute because there is nothing staked");
-    uint val = msg.value / totalStaked;
+    require(totalStaked != 0, "cannot distribute because there is nothing staked");    
     totalRewards = totalRewards + (msg.value * MULTIPLIER / totalStaked);
     emit Distribute(totalStaked, totalRewards);
   }
@@ -64,9 +62,9 @@ contract EthPool is AccessControl{
     require(sent, "Failed to send Ether");
 
     emit Withdraw(msg.sender, deposited, val);
-    // console.log("deposited: ", deposited, " reward: ", reward);
   }
-    // to support receiving ETH by default
+
+  // to support receiving ETH by default
   receive() external payable {}
   fallback() external payable {}
 
