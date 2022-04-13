@@ -24,10 +24,19 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
 module.exports = {
   solidity: "0.8.4",
   networks: {
+    kovan: {
+      url: process.env.alchemy_api_KOVAN,
+      accounts:
+        process.env.PRIVATE_KEY_OWNER !== undefined
+          ? [process.env.PRIVATE_KEY_OWNER]
+          : [],
+    },
     ropsten: {
       url: process.env.ROPSTEN_URL || "",
       accounts:
-        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+        process.env.PRIVATE_KEY_OWNER !== undefined
+          ? [process.env.PRIVATE_KEY_OWNER]
+          : [],
     },
   },
   gasReporter: {

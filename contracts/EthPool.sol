@@ -34,6 +34,10 @@ contract EthPool is AccessControl, ReentrancyGuard{
   constructor() {
     // Grant roles
     _setupRole(ETH_POOL_TEAM, _msgSender());
+
+    // Grant the contract deployer the default admin role: it will be able
+    // to grant and revoke any roles
+    _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());    
   }
 
   function deposit() payable external nonReentrant {

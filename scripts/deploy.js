@@ -1,3 +1,4 @@
+/* eslint-disable no-process-exit */
 /* eslint-disable prettier/prettier */
 /* eslint-disable prefer-const */
 const hre = require("hardhat");
