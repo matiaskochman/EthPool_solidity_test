@@ -1,3 +1,5 @@
 
-  export const ethPoolAddress = "0x560A848D1A49d800f948f33F84AD41235FA257Fc"
+  module.exports = {
+    ethPoolAddress: "0x72EfcD88892468741f4D069619319393fa15f3f1",
+  };
   

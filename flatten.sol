@@ -552,10 +552,11 @@ contract EthPool is AccessControl, ReentrancyGuard{
 
   uint private totalStaked = 0; // T
   uint private totalRewards = 0; // S
-  mapping(address => uint) private clientStake; // S0
+  mapping(address => uint) public clientStake; // S0
   mapping(address => uint) private snapshotRewards;
 
-  uint private constant MULTIPLIER = 100000;
+  // uint private constant MULTIPLIER = 100000;
+  uint private constant MULTIPLIER = 10**20;
 
     // Roles
   bytes32 public constant ETH_POOL_TEAM = keccak256("ETH_POOL_TEAM");
@@ -586,7 +587,7 @@ contract EthPool is AccessControl, ReentrancyGuard{
   }
 
   function deposit() payable external nonReentrant {
-    clientStake[msg.sender] = msg.value;
+    clientStake[msg.sender] = clientStake[msg.sender] + msg.value;
     snapshotRewards[msg.sender] = totalRewards;
     totalStaked = totalStaked + msg.value;
     emit Deposit(msg.sender, msg.value, totalStaked);
@@ -595,7 +596,7 @@ contract EthPool is AccessControl, ReentrancyGuard{
   function distribute() payable external nonReentrant onlyRole(ETH_POOL_TEAM){
     require(totalStaked != 0, "cannot distribute because there is nothing staked");    
     totalRewards = totalRewards + (msg.value * MULTIPLIER / totalStaked);
-    emit Distribute(totalStaked, totalRewards);
+    emit Distribute(totalStaked, msg.value);
   }
 
   function withdraw() external nonReentrant{
@@ -613,7 +614,6 @@ contract EthPool is AccessControl, ReentrancyGuard{
 
     emit Withdraw(msg.sender, deposited, val);
   }
-
   // to support receiving ETH by default
   receive() external payable {}
   fallback() external payable {}

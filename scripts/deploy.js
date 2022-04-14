@@ -11,8 +11,14 @@ async function main() {
   console.log("ethPool deployed to:", ethPool.address);
 
 
+  // let config = `
+  // export const ethPoolAddress = "${ethPool.address}"
+  // `
+
   let config = `
-  export const ethPoolAddress = "${ethPool.address}"
+  module.exports = {
+    ethPoolAddress: "${ethPool.address}",
+  };
   `
 
   let data = JSON.stringify(config)

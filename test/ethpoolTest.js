@@ -18,7 +18,7 @@ describe("EthPool", function () {
   it("deposit eth, distribute and withdraw", async function () {
     const amountBefore = await ethers.provider.getBalance(acc1.address);
     const deposit = ethers.utils.parseEther("10.0");
-    const reward = ethers.utils.parseEther("3.3333");
+    const reward = ethers.utils.parseEther("3.333333333333333333");
 
     let tx = await eth_pool.connect(acc1).deposit({ value: deposit });
     let receipt = await tx.wait();
@@ -41,6 +41,58 @@ describe("EthPool", function () {
 
     expect(await (await ethers.provider.getBalance(acc1.address)).add(gasTotal)).equals(amountBefore.add(reward));
   });
+
+  it("deposit eth 2 times with same account, distribute and withdraw", async function () {
+    // const amountBefore = await ethers.provider.getBalance(eth_pool.address);
+    // console.log("balance contract: ", amountBefore.toString());
+    const deposit = ethers.utils.parseEther("10.0");
+    const reward = ethers.utils.parseEther("10.0");
+
+    // const deposit = ethers.utils.parseEther("0.001");
+    // const reward = ethers.utils.parseEther("0.001");
+
+    // deposit 2 times in the acc1
+    await eth_pool.connect(acc1).deposit({ value: deposit });
+    // await eth_pool.connect(acc1).deposit({ value: deposit });
+
+    // deposit 1 time in acc2
+    await eth_pool.connect(acc2).deposit({ value: deposit.mul(2) });
+    await eth_pool.connect(owner).distribute({ value: deposit.mul(2) });
+
+    // const amountAfter = await ethers.provider.getBalance(eth_pool.address);
+    // const bal1 = await ethers.provider.getBalance(acc1.address);
+    // console.log("balance acc1: ", bal1.toString());
+    // console.log("balance contract: ", amountAfter.toString());
+
+    let tx, rec;
+    tx = await eth_pool.connect(acc1).withdraw();
+    rec = await tx.wait();
+    console.log(rec.events[0].args[2]);
+    let n1 = rec.events[0].args[2];
+    tx = await eth_pool.connect(acc2).withdraw();
+    rec = await tx.wait();
+    console.log(rec.events[0].args[2]);
+    n1 = n1.add(rec.events[0].args[2]);
+    console.log("suma: ", n1.toString())
+
+    const amountBefore = await ethers.provider.getBalance(eth_pool.address);
+    console.log("balance contract: ", amountBefore.toString());
+    n1 = n1.add(amountBefore);
+
+    console.log("amount distri: ", n1.toString())
+
+    // reward for acc1 should be 20 eth
+    // deposit for acc1 should be 20 eth because there are 2 deposits.
+    // await expect(await eth_pool.connect(acc1).withdraw())
+    //   .to.emit(eth_pool, "Withdraw")
+    //   .withArgs(acc1.address, deposit, reward.mul(2));
+
+    // await expect(await eth_pool.connect(acc2).withdraw())
+    // .to.emit(eth_pool, "Withdraw")
+    // .withArgs(acc2.address, deposit, reward);
+
+  });
+
 
   it("distribute fails: distributor is not ETH_POOL_TEAM", async function () {
     const amount = ethers.utils.parseEther("10.0");
