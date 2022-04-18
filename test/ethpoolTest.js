@@ -42,7 +42,7 @@ describe("EthPool", function () {
     expect(await (await ethers.provider.getBalance(acc1.address)).add(gasTotal)).equals(amountBefore.add(reward));
   });
 
-  it("1 client cannot deposit 2 before withdrawing", async function () {
+  it("should be rejected with: you should withdraw before deposit again", async function () {
     const deposit = ethers.utils.parseEther("10.0");
 
     await eth_pool.connect(acc1).deposit({ value: deposit });
