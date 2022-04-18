@@ -10,7 +10,6 @@ contract EthPool is AccessControl, ReentrancyGuard{
   mapping(address => uint) public clientStake; // S0
   mapping(address => uint) private snapshotRewards;
 
-  // uint private constant MULTIPLIER = 100000;
   uint private constant MULTIPLIER = 10**20;
 
     // Roles
@@ -42,7 +41,8 @@ contract EthPool is AccessControl, ReentrancyGuard{
   }
 
   function deposit() payable external nonReentrant {
-    clientStake[msg.sender] = clientStake[msg.sender] + msg.value;
+    require(clientStake[msg.sender] == 0, "you should withdraw before deposit again");
+    clientStake[msg.sender] =  msg.value;
     snapshotRewards[msg.sender] = totalRewards;
     totalStaked = totalStaked + msg.value;
     emit Deposit(msg.sender, msg.value, totalStaked);

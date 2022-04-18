@@ -42,54 +42,44 @@ describe("EthPool", function () {
     expect(await (await ethers.provider.getBalance(acc1.address)).add(gasTotal)).equals(amountBefore.add(reward));
   });
 
-  it("deposit eth 2 times with same account, distribute and withdraw", async function () {
-    // const amountBefore = await ethers.provider.getBalance(eth_pool.address);
-    // console.log("balance contract: ", amountBefore.toString());
+  it("1 client cannot deposit 2 before withdrawing", async function () {
     const deposit = ethers.utils.parseEther("10.0");
-    const reward = ethers.utils.parseEther("10.0");
 
-    // const deposit = ethers.utils.parseEther("0.001");
-    // const reward = ethers.utils.parseEther("0.001");
-
-    // deposit 2 times in the acc1
     await eth_pool.connect(acc1).deposit({ value: deposit });
-    // await eth_pool.connect(acc1).deposit({ value: deposit });
+    
+    await expect(eth_pool.connect(acc1).deposit({ value: deposit })).to.be.revertedWith("you should withdraw before deposit again");
+  });
+  it("5 clients 2 distributions", async function () {
+    const amount = ethers.utils.parseEther("1.0");
 
-    // deposit 1 time in acc2
-    await eth_pool.connect(acc2).deposit({ value: deposit.mul(2) });
-    await eth_pool.connect(owner).distribute({ value: deposit.mul(2) });
+    await eth_pool.connect(acc1).deposit({ value: amount });
+    await eth_pool.connect(acc2).deposit({ value: amount.mul(2) });
+    await eth_pool.connect(acc3).deposit({ value: amount.mul(3) });
+    await eth_pool.connect(acc4).deposit({ value: amount.mul(4) });
+    await eth_pool.connect(acc5).deposit({ value: amount.mul(5) });
+    await eth_pool.connect(owner).distribute({ value: amount.mul(15) });
+    await eth_pool.connect(owner).distribute({ value: amount.mul(30) });
 
-    // const amountAfter = await ethers.provider.getBalance(eth_pool.address);
-    // const bal1 = await ethers.provider.getBalance(acc1.address);
-    // console.log("balance acc1: ", bal1.toString());
-    // console.log("balance contract: ", amountAfter.toString());
 
-    let tx, rec;
-    tx = await eth_pool.connect(acc1).withdraw();
-    rec = await tx.wait();
-    console.log(rec.events[0].args[2]);
-    let n1 = rec.events[0].args[2];
-    tx = await eth_pool.connect(acc2).withdraw();
-    rec = await tx.wait();
-    console.log(rec.events[0].args[2]);
-    n1 = n1.add(rec.events[0].args[2]);
-    console.log("suma: ", n1.toString())
+    await expect(await eth_pool.connect(acc1).withdraw())
+      .to.emit(eth_pool, "Withdraw")
+      .withArgs(acc1.address, amount, amount.mul(3));
 
-    const amountBefore = await ethers.provider.getBalance(eth_pool.address);
-    console.log("balance contract: ", amountBefore.toString());
-    n1 = n1.add(amountBefore);
+    await expect(await eth_pool.connect(acc2).withdraw())
+    .to.emit(eth_pool, "Withdraw")
+    .withArgs(acc2.address, amount.mul(2), amount.mul(6));
 
-    console.log("amount distri: ", n1.toString())
+    await expect(await eth_pool.connect(acc3).withdraw())
+    .to.emit(eth_pool, "Withdraw")
+    .withArgs(acc3.address, amount.mul(3), amount.mul(9));
 
-    // reward for acc1 should be 20 eth
-    // deposit for acc1 should be 20 eth because there are 2 deposits.
-    // await expect(await eth_pool.connect(acc1).withdraw())
-    //   .to.emit(eth_pool, "Withdraw")
-    //   .withArgs(acc1.address, deposit, reward.mul(2));
+    await expect(await eth_pool.connect(acc4).withdraw())
+    .to.emit(eth_pool, "Withdraw")
+    .withArgs(acc4.address, amount.mul(4), amount.mul(12));
 
-    // await expect(await eth_pool.connect(acc2).withdraw())
-    // .to.emit(eth_pool, "Withdraw")
-    // .withArgs(acc2.address, deposit, reward);
+    await expect(await eth_pool.connect(acc5).withdraw())
+    .to.emit(eth_pool, "Withdraw")
+    .withArgs(acc5.address, amount.mul(5), amount.mul(15));
 
   });
 
