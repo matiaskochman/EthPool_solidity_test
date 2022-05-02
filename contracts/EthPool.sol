@@ -40,7 +40,7 @@ contract EthPool is AccessControl, ReentrancyGuard{
     _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());    
   }
 
-  function deposit() payable external nonReentrant {
+  function deposit() payable external nonReentrant() {
     require(clientStake[msg.sender] == 0, "you should withdraw before deposit again");
     clientStake[msg.sender] =  msg.value;
     snapshotRewards[msg.sender] = totalRewards;
@@ -48,13 +48,13 @@ contract EthPool is AccessControl, ReentrancyGuard{
     emit Deposit(msg.sender, msg.value, totalStaked);
   }
 
-  function distribute() payable external nonReentrant onlyRole(ETH_POOL_TEAM){
+  function distribute() payable external nonReentrant() onlyRole(ETH_POOL_TEAM){
     require(totalStaked != 0, "cannot distribute because there is nothing staked");    
     totalRewards = totalRewards + (msg.value * MULTIPLIER / totalStaked);
     emit Distribute(totalStaked, msg.value);
   }
 
-  function withdraw() external nonReentrant{
+  function withdraw() external nonReentrant() {
     require(totalStaked > 0, "no deposits in the contract");
     require(clientStake[msg.sender] > 0, "no funds to withdraw for the client");
     uint deposited = clientStake[msg.sender];
@@ -64,10 +64,11 @@ contract EthPool is AccessControl, ReentrancyGuard{
     
     uint val = reward / MULTIPLIER;
     uint total = deposited + val;
-    (bool sent, ) = payable(msg.sender).call{value: total}("");
-    require(sent, "Failed to send Ether");
 
     emit Withdraw(msg.sender, deposited, val);
+    
+    (bool sent, ) = payable(msg.sender).call{value: total}("");
+    require(sent, "Failed to send Ether");
   }
   // to support receiving ETH by default
   receive() external payable {}
